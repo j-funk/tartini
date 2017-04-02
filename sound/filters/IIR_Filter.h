@@ -1,5 +1,5 @@
 /***************************************************************************
-                          filter.cpp  -  description
+                          IIR_Filter.h  -  description
                              -------------------
     begin                : 2004
     copyright            : (C) 2004-2005 by Philip McLeod
@@ -12,31 +12,33 @@
    
    Please read LICENSE.txt for details.
  ***************************************************************************/
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef IIR_FILTER_H
+#define IIR_FILTER_H
 
-#include <vector>
-#include <deque>
-
-typedef unsigned int uint;
+#include "Filter.h"
 
 class FilterState;
 
-class Filter
+/** Infinite Impulse Response filter
+  */
+class IIR_Filter : public Filter
 {
-public:
-	std::vector<double> _a; //coefficients for the top line (use with outputs) a[0] to a[n-1]
-	std::vector<double> _b; //coefficients for the bottom line (use with inputs) b[1] to b[m]
-	std::deque<double> _x; //last n inputs
-	std::deque<double> _y; //last m outputs
-	double gain;
+  Array1d<double> bufx, bufy; //tempery buffer storage
+  Array1d<double> _a, _b; //The filter coefficient's
+  Array1d<double> _x, _y; //The current filter state (last n states of input and output)
+  //double gain;
 
-	Filter() { }
-	void make_FIR(double *b, uint n); //crate FIR filter with n coefficients
-	void make_IIR(double *b, double *a, int n, int m=-1); //crate IIR filter with n coefficients
-	void print();
-	double apply(double input);
-	void clear();
+public:
+
+  IIR_Filter() { }
+  IIR_Filter(double *b, double *a, int n, int m=-1);
+  ~IIR_Filter() { }
+  //void make_FIR(double *b, uint n); //crate FIR filter with n coefficients
+  void init(double *b, double *a, int n, int m=-1);
+  void print();
+  //float filter(float input);
+  void filter(const float *input, float *output, int n);
+  void reset();
   void getState(FilterState *filterState) const;
   void setState(const FilterState *filterState);
 };
@@ -44,8 +46,7 @@ public:
 class FilterState
 {
 public:
-  std::deque<double> _x;
-  std::deque<double> _y;
+  Array1d<double> _x, _y;
   //void operator=(const FilterState &fs) { _x = fs._x; _y = fs._y; }
 };
 
